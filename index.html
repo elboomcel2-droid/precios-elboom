@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E0E10" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Precios" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>Consulta de precios · El Boom</title>
+<style>
+  :root {
+    --bg: #0E0E10; --surface: #1A1A1E; --surface-2: #232329;
+    --gold: #F5B301; --gold-dim: #C99400; --ok: #4ADE80;
+    --text: #F4F2EC; --muted: #8A8A90; --line: #2C2C32;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    padding: calc(env(safe-area-inset-top) + 14px) 16px 12px;
+    background: var(--bg); border-bottom: 1px solid var(--line); position: relative;
+  }
+  header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
+    background: repeating-linear-gradient(-45deg, var(--gold) 0 12px, #0E0E10 12px 24px); opacity: .9;
+  }
+  .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: .5px; margin: 0; text-transform: uppercase; }
+  .brand h1 span { color: var(--gold); }
+  .count { font-size: 11.5px; color: var(--muted); white-space: nowrap; text-align: right; line-height: 1.35; }
+
+  .suc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .sucursales { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .suc {
+    background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+    border-radius: 10px; padding: 9px 4px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all .12s;
+  }
+  .suc.activa { background: var(--gold); color: #171205; border-color: var(--gold); }
+
+  .search {
+    display: flex; align-items: center; gap: 10px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; transition: border-color .15s;
+  }
+  .search:focus-within { border-color: var(--gold); }
+  .search svg { flex: none; width: 20px; height: 20px; fill: var(--muted); }
+  .search input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 17px; padding: 14px 0; }
+  .search input::placeholder { color: var(--muted); }
+  .clear { background: none; border: none; color: var(--muted); font-size: 22px; line-height: 1; padding: 4px; cursor: pointer; }
+
+  main { flex: 1; overflow-y: auto; padding: 8px 12px 24px; -webkit-overflow-scrolling: touch; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin: 8px 0; display: flex; align-items: center; gap: 14px;
+  }
+  .card .info { flex: 1; min-width: 0; }
+  .card .desc { font-size: 16px; font-weight: 600; line-height: 1.25; word-break: break-word; }
+  .card .meta { margin-top: 5px; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .card .meta .code { color: var(--gold-dim); font-weight: 600; }
+  .exist { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border-radius: 6px; padding: 2px 8px; font-weight: 700; }
+  .exist.hay { color: var(--ok); }
+  .exist.no { color: var(--muted); }
+  .otras { margin-top: 6px; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .otras b { color: var(--text); font-weight: 600; }
+  .card .price {
+    flex: none; text-align: right; font-size: 26px; font-weight: 800; color: var(--gold);
+    font-variant-numeric: tabular-nums; letter-spacing: -.5px;
+  }
+
+  .empty {
+    height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px; color: var(--muted); gap: 16px;
+  }
+  .empty svg { width: 56px; height: 56px; fill: var(--surface-2); }
+  .empty .big { font-size: 16px; color: var(--text); font-weight: 600; }
+  .empty .sub { font-size: 14px; line-height: 1.5; max-width: 300px; }
+
+  footer { padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); background: var(--bg); border-top: 1px solid var(--line); }
+  .btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--gold); color: #171205; border: none; border-radius: 12px;
+    padding: 15px; font-size: 15px; font-weight: 700; cursor: pointer; transition: transform .08s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { background: var(--surface-2); color: var(--muted); }
+  .btn svg { width: 20px; height: 20px; fill: currentColor; }
+  .spin { animation: girar 1s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 88px);
+    transform: translateX(-50%) translateY(20px); background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 12px 18px;
+    border-radius: 10px; font-size: 14px; max-width: 90%; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Precios <span>El Boom</span></h1>
+    <div class="count" id="count">Sin datos</div>
+  </div>
+
+  <div class="suc-label">Sucursal</div>
+  <div class="sucursales" id="sucursales"></div>
+
+  <label class="search">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.49 4.49 0 0 1 9.5 14z"/></svg>
+    <input id="q" type="search" inputmode="search" enterkeyhint="search"
+           placeholder="Buscar por código o descripción" autocomplete="off" />
+    <button class="clear" id="clear" style="display:none" aria-label="Limpiar">&times;</button>
+  </label>
+</header>
+
+<main id="results"></main>
+
+<footer>
+  <button class="btn" id="btn">
+    <svg id="btnIcon" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    <span id="btnLabel">Actualizar datos</span>
+  </button>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Consulta de precios · El Boom Tractopartes
+   Baja datos.json (publicado por la PC de la oficina) con un toque.
+   Guarda todo en el teléfono: la búsqueda funciona sin internet.
+   ============================================================ */
+
+/* -------- CONFIGURACIÓN --------
+   Si la app y datos.json están en el MISMO repositorio (GitHub Pages),
+   deja 'datos.json'. Si publicas los datos en otro lado, pon aquí la URL
+   completa (https://...). */
+const DATOS_URL = 'datos.json';
+/* ------------------------------- */
+
+const SUCURSALES = [
+  { id: 1, nombre: 'Alpuyeca',     abr: 'Alp' },
+  { id: 2, nombre: 'Tizoc',        abr: 'Tiz' },
+  { id: 3, nombre: 'Acapulco',     abr: 'Aca' },
+  { id: 4, nombre: 'Chilpancingo', abr: 'Chi' },
+];
+
+const $ = (id) => document.getElementById(id);
+const results = $('results'), countEl = $('count'), qEl = $('q');
+const btn = $('btn'), btnLabel = $('btnLabel'), btnIcon = $('btnIcon');
+
+let articulos = [];
+let sucursalSel = 1;
+let fechaDatos = '';       // cuándo generó los datos la PC
+let fechaDescarga = 0;     // cuándo los bajó este teléfono
+
+/* ---------- Almacenamiento local (IndexedDB) ---------- */
+const DB_NAME = 'preciosDB', STORE = 'kv';
+function db() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+async function guardar(clave, valor) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(valor, clave);
+    tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
+  });
+}
+async function leer(clave) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(clave);
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  });
+}
+
+/* ---------- Formato ---------- */
+const fmtMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 });
+function fmtExist(n) { if (n === null || n === undefined) return '—'; return (n % 1 === 0) ? String(n) : n.toFixed(2); }
+function nombreSuc(id) { return (SUCURSALES.find(s => s.id === id) || {}).nombre || '—'; }
+function num(v) { const n = Number(v); return isNaN(n) ? 0 : n; }
+function fechaLegible(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* ---------- Selector de sucursal ---------- */
+function pintarSucursales() {
+  $('sucursales').innerHTML = SUCURSALES.map(s =>
+    `<div class="suc ${s.id === sucursalSel ? 'activa' : ''}" data-id="${s.id}">${s.nombre}</div>`
+  ).join('');
+  document.querySelectorAll('.suc').forEach(el =>
+    el.addEventListener('click', () => { sucursalSel = parseInt(el.dataset.id); pintarSucursales(); render(buscar(qEl.value)); }));
+}
+
+/* ---------- Búsqueda ---------- */
+function buscar(texto) {
+  const t = texto.trim().toLowerCase();
+  if (!t) return [];
+  const porCodigo = [], porDesc = [];
+  for (const a of articulos) {
+    const cod = a.codigo.toLowerCase();
+    if (cod.startsWith(t)) porCodigo.push(a);
+    else if (cod.includes(t) || a.desc.toLowerCase().includes(t)) porDesc.push(a);
+    if (porCodigo.length + porDesc.length >= 200) break;
+  }
+  return porCodigo.concat(porDesc).slice(0, 50);
+}
+
+/* ---------- Pintar resultados ---------- */
+function render(lista) {
+  if (articulos.length === 0) {
+    results.innerHTML = estadoVacio('No hay datos cargados', 'Toca "Actualizar datos" abajo (necesitas internet la primera vez).');
+    return;
+  }
+  const q = qEl.value.trim();
+  if (!q) {
+    results.innerHTML = estadoVacio('Listo para buscar',
+      `Escribe un código o descripción para consultar entre ${articulos.length.toLocaleString('es-MX')} artículos.`);
+    return;
+  }
+  if (lista.length === 0) { results.innerHTML = estadoVacio('Sin resultados', `Nada coincide con "${q}"."); return; }
+
+  let html = '';
+  for (const a of lista) {
+    const val = a.ex[sucursalSel];
+    const hay = val !== null && val > 0;
+    const otras = '<div class="otras">' + SUCURSALES.filter(s => s.id !== sucursalSel)
+      .map(s => `${s.abr}: <b>${fmtExist(a.ex[s.id])}</b>`).join(' · ') + '</div>';
+    html += `
+      <div class="card">
+        <div class="info">
+          <div class="desc">${esc(a.desc) || '—'}</div>
+          <div class="meta">
+            <span class="code">${esc(a.codigo)}</span>
+            <span class="exist ${hay ? 'hay' : 'no'}">${nombreSuc(sucursalSel)}: ${fmtExist(val)}</span>
+          </div>
+          ${otras}
+        </div>
+        <div class="price">${fmtMoneda.format(a.precio)}</div>
+      </div>`;
+  }
+  results.innerHTML = html;
+  results.scrollTop = 0;
+}
+function estadoVacio(big, sub) {
+  return `<div class="empty">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.49 4.49 0 0 1 9.5 14z"/></svg>
+    <div class="big">${big}</div><div class="sub">${sub}</div></div>`;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+/* ---------- Buscador con retardo ---------- */
+let timer;
+qEl.addEventListener('input', () => {
+  $('clear').style.display = qEl.value ? 'block' : 'none';
+  clearTimeout(timer);
+  timer = setTimeout(() => render(buscar(qEl.value)), 200);
+});
+$('clear').addEventListener('click', () => { qEl.value = ''; $('clear').style.display = 'none'; qEl.focus(); render([]); });
+
+/* ---------- Actualizar (baja datos.json con un toque) ---------- */
+btn.addEventListener('click', actualizar);
+
+async function actualizar() {
+  btn.disabled = true; btnLabel.textContent = 'Actualizando…'; btnIcon.classList.add('spin');
+  try {
+    const url = DATOS_URL + (DATOS_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('El servidor respondió ' + resp.status);
+    const data = await resp.json();
+    const rows = data.rows || [];
+    // fila = [codigo, descripcion, precio, e1, e2, e3, e4]
+    articulos = rows.map(r => ({
+      codigo: String(r[0]).trim(),
+      desc: String(r[1] || '').trim(),
+      precio: num(r[2]),
+      ex: { 1: num(r[3]), 2: num(r[4]), 3: num(r[5]), 4: num(r[6]) },
+    }));
+    fechaDatos = data.fecha || '';
+    fechaDescarga = Date.now();
+    await guardar('datos', { articulos, fechaDatos, fechaDescarga });
+    actualizarConteo();
+    render(buscar(qEl.value));
+    toast(`Actualizado: ${articulos.length.toLocaleString('es-MX')} artículos.`);
+  } catch (e) {
+    toast('No se pudo actualizar: ' + e.message + (articulos.length ? ' (se conservan los datos anteriores)' : ''));
+  } finally {
+    btn.disabled = false; btnIcon.classList.remove('spin');
+    btnLabel.textContent = articulos.length ? 'Actualizar datos' : 'Cargar datos';
+  }
+}
+
+function actualizarConteo() {
+  if (!articulos.length) { countEl.textContent = 'Sin datos'; return; }
+  countEl.innerHTML = `${articulos.length.toLocaleString('es-MX')} artículos` +
+    (fechaDatos ? `<br>Datos del ${fechaLegible(fechaDatos)}` : '');
+}
+
+/* ---------- Aviso emergente ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+
+/* ---------- Arranque ---------- */
+(async function init() {
+  pintarSucursales();
+  try {
+    const d = await leer('datos');
+    if (d && d.articulos && d.articulos.length) {
+      articulos = d.articulos; fechaDatos = d.fechaDatos || ''; fechaDescarga = d.fechaDescarga || 0;
+      actualizarConteo();
+      btnLabel.textContent = 'Actualizar datos';
+    }
+  } catch (e) { /* primera vez */ }
+  render([]);
+})();
+
+/* ---------- Service worker (offline) ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

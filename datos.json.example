@@ -1,0 +1,15 @@
+{
+  "fecha": "2026-08-21T16:00:00Z",
+  "rows": [
+    ["MOT001", "Motor Diesel 6 cilindros", 15000.00, 2, 1, 0, 3],
+    ["BOM002", "Bomba de agua", 850.50, 10, 8, 12, 5],
+    ["FIL003", "Filtro de aire", 120.00, 25, 30, 28, 22],
+    ["COR004", "Correa de distribución", 450.75, 8, 6, 9, 4],
+    ["RAD005", "Radiador aluminio", 2200.00, 3, 2, 4, 1],
+    ["OLE006", "Aceite sintético 10W-40 (5L)", 380.00, 15, 20, 18, 12],
+    ["CHA007", "Chasis completo", 18500.00, 1, 0, 2, 1],
+    ["ALT008", "Alternador 120A", 1200.00, 5, 4, 6, 3],
+    ["BAT009", "Batería 12V 100Ah", 1500.00, 8, 10, 7, 6],
+    ["CAB010", "Cable de arranque", 95.00, 30, 25, 28, 20]
+  ]
+}
