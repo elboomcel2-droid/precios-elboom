@@ -237,7 +237,7 @@ function render(lista) {
       `Escribe un código o descripción para consultar entre ${articulos.length.toLocaleString('es-MX')} artículos.`);
     return;
   }
-  if (lista.length === 0) { results.innerHTML = estadoVacio('Sin resultados', `Nada coincide con "${q}"."); return; }
+  if (lista.length === 0) { results.innerHTML = estadoVacio('Sin resultados', `Nada coincide con "${q}".`); return; }
 
   let html = '';
   for (const a of lista) {
