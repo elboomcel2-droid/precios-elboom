@@ -1,7 +1,7 @@
 /* Service worker: guarda la app para que funcione sin internet.
    OJO: datos.json NO se cachea, para que las actualizaciones siempre lleguen.
    Sube el número de versión si cambias index.html. */
-const CACHE = 'precios-v4';
+const CACHE = 'precios-v5';
 const ARCHIVOS = [
   './',
   './index.html',

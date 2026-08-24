@@ -149,11 +149,13 @@ const DATOS_URL = 'datos.json';
 /* ------------------------------- */
 
 const SUCURSALES = [
-  { id: 1, nombre: 'Alpuyeca',     abr: 'Alp' },
-  { id: 2, nombre: 'Tizoc',        abr: 'Tiz' },
-  { id: 3, nombre: 'Acapulco',     abr: 'Aca' },
-  { id: 4, nombre: 'Chilpancingo', abr: 'Chi' },
+  { id: 1, nombre: 'Alpuyeca',     abr: 'Alp', zona: 1 },  // Morelos
+  { id: 2, nombre: 'Tizoc',        abr: 'Tiz', zona: 1 },  // Morelos
+  { id: 3, nombre: 'Acapulco',     abr: 'Aca', zona: 2 },  // Guerrero
+  { id: 4, nombre: 'Chilpancingo', abr: 'Chi', zona: 2 },  // Guerrero
 ];
+function zonaDeSucursal(id) { return (SUCURSALES.find(s => s.id === id) || {}).zona || 1; }
+function precioDeSucursal(a, id) { return zonaDeSucursal(id) === 2 ? a.precioGro : a.precioMor; }
 
 const $ = (id) => document.getElementById(id);
 const results = $('results'), countEl = $('count'), qEl = $('q');
@@ -228,7 +230,7 @@ function buscar(texto) {
 /* ---------- Pintar resultados ---------- */
 function render(lista) {
   if (articulos.length === 0) {
-    results.innerHTML = estadoVacio('No hay datos cargados', 'Toca "Actualizar datos" abajo (necesitas internet la primera vez).');
+    results.innerHTML = estadoVacio('No hay datos cargados', 'Toca “Actualizar datos” abajo (necesitas internet la primera vez).');
     return;
   }
   const q = qEl.value.trim();
@@ -237,7 +239,7 @@ function render(lista) {
       `Escribe un código o descripción para consultar entre ${articulos.length.toLocaleString('es-MX')} artículos.`);
     return;
   }
-  if (lista.length === 0) { results.innerHTML = estadoVacio('Sin resultados', `Nada coincide con "${q}".`); return; }
+  if (lista.length === 0) { results.innerHTML = estadoVacio('Sin resultados', `Nada coincide con “${q}”.`); return; }
 
   let html = '';
   for (const a of lista) {
@@ -255,7 +257,7 @@ function render(lista) {
           </div>
           ${otras}
         </div>
-        <div class="price">${fmtMoneda.format(a.precio)}</div>
+        <div class="price">${fmtMoneda.format(precioDeSucursal(a, sucursalSel))}</div>
       </div>`;
   }
   results.innerHTML = html;
@@ -288,12 +290,13 @@ async function actualizar() {
     if (!resp.ok) throw new Error('El servidor respondió ' + resp.status);
     const data = await resp.json();
     const rows = data.rows || [];
-    // fila = [codigo, descripcion, precio, e1, e2, e3, e4]
+    // fila = [codigo, descripcion, precio_morelos, precio_guerrero, e1, e2, e3, e4]
     articulos = rows.map(r => ({
       codigo: String(r[0]).trim(),
       desc: String(r[1] || '').trim(),
-      precio: num(r[2]),
-      ex: { 1: num(r[3]), 2: num(r[4]), 3: num(r[5]), 4: num(r[6]) },
+      precioMor: num(r[2]),
+      precioGro: num(r[3]),
+      ex: { 1: num(r[4]), 2: num(r[5]), 3: num(r[6]), 4: num(r[7]) },
     }));
     fechaDatos = data.fecha || '';
     fechaDescarga = Date.now();
