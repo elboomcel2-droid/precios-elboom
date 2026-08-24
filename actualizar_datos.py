@@ -26,11 +26,11 @@ import requests
 DB_HOST = "104.192.4.18"
 DB_USER = "sistemas"
 DB_PASS = "Sis26teb"                 # <-- cámbiala; y mejor un usuario solo-lectura
-DB_NAME = "NOMBRE_DE_TU_BASE"        # <-- PON AQUÍ el nombre real de tu base
+DB_NAME = "tractopartes"        # <-- PON AQUÍ el nombre real de tu base
 
 # --- GitHub (dónde se publica el archivo que baja la app) ---
 GITHUB_TOKEN  = "PON_AQUI_TU_TOKEN"         # token fino con permiso Contents: Read and write
-GITHUB_REPO   = "TU_USUARIO/precios-elboom" # usuario/repositorio
+GITHUB_REPO   = "elboomcel2-droid/precios-elboom" # usuario/repositorio
 GITHUB_PATH   = "datos.json"                # nombre del archivo dentro del repo
 GITHUB_BRANCH = "main"
 
