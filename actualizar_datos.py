@@ -29,7 +29,7 @@ DB_PASS = "Sis26teb"                 # <-- cámbiala; y mejor un usuario solo-le
 DB_NAME = "tractopartes"        # <-- PON AQUÍ el nombre real de tu base
 
 # --- GitHub (dónde se publica el archivo que baja la app) ---
-GITHUB_TOKEN  = "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"         # token fino con permiso Contents: Read and write
+GITHUB_TOKEN  = "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"         # token fino con permiso Contents: Read and write
 GITHUB_REPO   = "elboomcel2-droid/precios-elboom" # usuario/repositorio
 GITHUB_PATH   = "datos.json"                # nombre del archivo dentro del repo
 GITHUB_BRANCH = "main"
@@ -43,21 +43,34 @@ CONSULTA = """
 SELECT
     a.codigo        AS codigo,
     a.descripcion   AS descripcion,
-    -- Precio con IVA por zona (grupo 1 = Morelos, grupo 2 = Guerrero)
-    ROUND(MAX(CASE WHEN pg.grupo_id = 1 THEN pg.precio END) * 1.16, 2) AS precio_morelos,
-    ROUND(MAX(CASE WHEN pg.grupo_id = 2 THEN pg.precio END) * 1.16, 2) AS precio_guerrero,
-    -- Existencia por sucursal
-    COALESCE(SUM(CASE WHEN e.inv_almacen_id = 1 THEN e.cantidad_existencia END), 0) AS e1,
-    COALESCE(SUM(CASE WHEN e.inv_almacen_id = 2 THEN e.cantidad_existencia END), 0) AS e2,
-    COALESCE(SUM(CASE WHEN e.inv_almacen_id = 3 THEN e.cantidad_existencia END), 0) AS e3,
-    COALESCE(SUM(CASE WHEN e.inv_almacen_id = 4 THEN e.cantidad_existencia END), 0) AS e4
+    px.precio_morelos,
+    px.precio_guerrero,
+    COALESCE(ex.e1, 0) AS e1,
+    COALESCE(ex.e2, 0) AS e2,
+    COALESCE(ex.e3, 0) AS e3,
+    COALESCE(ex.e4, 0) AS e4
 FROM inv_articulo a
 INNER JOIN inv_articulo_parametro p
     ON a.id = p.inv_articulo_id AND p.descontinuado <> 1
-INNER JOIN inv_articulo_precio_grupo_almacenes pg
-    ON pg.articulo_id = a.id AND pg.orden = 1 AND pg.grupo_id IN (1, 2)
-LEFT JOIN inv_existencia e ON e.inv_articulo_id = a.id
-GROUP BY a.id, a.codigo, a.descripcion
+-- Precios agregados a UNA fila por artículo (grupo 1 = Morelos, grupo 2 = Guerrero), con IVA
+INNER JOIN (
+    SELECT articulo_id,
+           ROUND(MAX(CASE WHEN grupo_id = 1 THEN precio END) * 1.16, 2) AS precio_morelos,
+           ROUND(MAX(CASE WHEN grupo_id = 2 THEN precio END) * 1.16, 2) AS precio_guerrero
+    FROM inv_articulo_precio_grupo_almacenes
+    WHERE orden = 1 AND grupo_id IN (1, 2) AND moneda_id = 1
+    GROUP BY articulo_id
+) px ON px.articulo_id = a.id
+-- Existencias agregadas a UNA fila por artículo (por separado, para no multiplicar)
+LEFT JOIN (
+    SELECT inv_articulo_id,
+           SUM(CASE WHEN inv_almacen_id = 1 THEN cantidad_existencia END) AS e1,
+           SUM(CASE WHEN inv_almacen_id = 2 THEN cantidad_existencia END) AS e2,
+           SUM(CASE WHEN inv_almacen_id = 3 THEN cantidad_existencia END) AS e3,
+           SUM(CASE WHEN inv_almacen_id = 4 THEN cantidad_existencia END) AS e4
+    FROM inv_existencia
+    GROUP BY inv_articulo_id
+) ex ON ex.inv_articulo_id = a.id
 """
 
 
