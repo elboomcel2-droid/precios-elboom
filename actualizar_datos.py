@@ -29,7 +29,7 @@ DB_PASS = "Sis26teb"                 # <-- cámbiala; y mejor un usuario solo-le
 DB_NAME = "tractopartes"        # <-- PON AQUÍ el nombre real de tu base
 
 # --- GitHub (dónde se publica el archivo que baja la app) ---
-GITHUB_TOKEN  = "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"         # token fino con permiso Contents: Read and write
+GITHUB_TOKEN  = "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"         # token fino con permiso Contents: Read and write
 GITHUB_REPO   = "elboomcel2-droid/precios-elboom" # usuario/repositorio
 GITHUB_PATH   = "datos.json"                # nombre del archivo dentro del repo
 GITHUB_BRANCH = "main"
