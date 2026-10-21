@@ -25,8 +25,8 @@ import requests
 # --- Base de datos (usa de preferencia un usuario de SOLO LECTURA) ---
 DB_HOST = "104.192.4.18"
 DB_USER = "sistemas"
-DB_PASS = "Sis26teb"                 # <-- cámbiala; y mejor un usuario solo-lectura
-DB_NAME = "tractopartes"        # <-- PON AQUÍ el nombre real de tu base
+DB_PASS = "Sis26teb"                 
+DB_NAME = "tractopartes"       
 
 # --- GitHub (dónde se publica el archivo que baja la app) ---
 GITHUB_TOKEN  = "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"         # token fino con permiso Contents: Read and write
