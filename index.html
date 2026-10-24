@@ -250,8 +250,9 @@ function render(lista) {
     const hay = val !== null && val > 0;
     const otras = '<div class="otras">' + SUCURSALES.filter(s => s.id !== sucursalSel)
       .map(s => `${s.abr}: <b>${fmtExist(a.ex[s.id])}</b>`).join(' · ') + '</div>';
+    // La ubicación es SOLO de Alpuyeca; se muestra únicamente en esa sucursal.
     const u = ubicaciones[a.codigo];
-    const ubicHtml = u ? `<span class="ubic">📍 ${esc(u)}</span>` : '';
+    const ubicHtml = (sucursalSel === 1 && u) ? `<span class="ubic">📍 ${esc(u)}</span>` : '';
     html += `
       <div class="card">
         <div class="info">
