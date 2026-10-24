@@ -1,7 +1,7 @@
 /* Service worker: guarda la app para que funcione sin internet.
    OJO: datos.json NO se cachea, para que las actualizaciones siempre lleguen.
    Sube el número de versión si cambias index.html. */
-const CACHE = 'precios-v5';
+const CACHE = 'precios-v6';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -30,5 +30,6 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   // Nunca interceptar los datos: siempre van a la red (y la app los guarda aparte)
   if (url.pathname.endsWith('datos.json')) return;
+  if (url.pathname.endsWith('ubicaciones.json')) return;
   e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
 });

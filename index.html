@@ -65,6 +65,7 @@
   .card .meta { margin-top: 5px; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
   .card .meta .code { color: var(--gold-dim); font-weight: 600; }
   .exist { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border-radius: 6px; padding: 2px 8px; font-weight: 700; }
+  .ubic { display: inline-flex; align-items: center; gap: 3px; background: var(--surface-2); color: var(--gold); border-radius: 6px; padding: 2px 8px; font-weight: 700; }
   .exist.hay { color: var(--ok); }
   .exist.no { color: var(--muted); }
   .otras { margin-top: 6px; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
@@ -146,6 +147,7 @@
    deja 'datos.json'. Si publicas los datos en otro lado, pon aquí la URL
    completa (https://...). */
 const DATOS_URL = 'datos.json';
+const UBIC_URL  = 'ubicaciones.json';   // ubicaciones provisionales (desde Excel)
 /* ------------------------------- */
 
 const SUCURSALES = [
@@ -162,6 +164,7 @@ const results = $('results'), countEl = $('count'), qEl = $('q');
 const btn = $('btn'), btnLabel = $('btnLabel'), btnIcon = $('btnIcon');
 
 let articulos = [];
+let ubicaciones = {};      // mapa codigo -> ubicación (provisional, desde Excel)
 let sucursalSel = 1;
 let fechaDatos = '';       // cuándo generó los datos la PC
 let fechaDescarga = 0;     // cuándo los bajó este teléfono
@@ -247,12 +250,15 @@ function render(lista) {
     const hay = val !== null && val > 0;
     const otras = '<div class="otras">' + SUCURSALES.filter(s => s.id !== sucursalSel)
       .map(s => `${s.abr}: <b>${fmtExist(a.ex[s.id])}</b>`).join(' · ') + '</div>';
+    const u = ubicaciones[a.codigo];
+    const ubicHtml = u ? `<span class="ubic">📍 ${esc(u)}</span>` : '';
     html += `
       <div class="card">
         <div class="info">
           <div class="desc">${esc(a.desc) || '—'}</div>
           <div class="meta">
             <span class="code">${esc(a.codigo)}</span>
+            ${ubicHtml}
             <span class="exist ${hay ? 'hay' : 'no'}">${nombreSuc(sucursalSel)}: ${fmtExist(val)}</span>
           </div>
           ${otras}
@@ -301,6 +307,18 @@ async function actualizar() {
     fechaDatos = data.fecha || '';
     fechaDescarga = Date.now();
     await guardar('datos', { articulos, fechaDatos, fechaDescarga });
+
+    // Ubicaciones provisionales (archivo aparte). Si falla, no interrumpe.
+    try {
+      const u = UBIC_URL + (UBIC_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const ru = await fetch(u, { cache: 'no-store' });
+      if (ru.ok) {
+        const du = await ru.json();
+        ubicaciones = du.u || du || {};
+        await guardar('ubicaciones', ubicaciones);
+      }
+    } catch (e) { /* sin ubicaciones: la app sigue igual */ }
+
     actualizarConteo();
     render(buscar(qEl.value));
     toast(`Actualizado: ${articulos.length.toLocaleString('es-MX')} artículos.`);
@@ -335,6 +353,8 @@ function toast(msg) {
       actualizarConteo();
       btnLabel.textContent = 'Actualizar datos';
     }
+    const u = await leer('ubicaciones');
+    if (u) ubicaciones = u;
   } catch (e) { /* primera vez */ }
   render([]);
 })();
